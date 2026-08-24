@@ -1,1 +1,1 @@
-docs/pages/CellularModemHalSpec.md
+docs/pages/halSpec.md
