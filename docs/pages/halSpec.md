@@ -15,7 +15,9 @@ needs a different one in each case and the previous revision of this page presen
 | Document revision | `1.0.1` | The revision of this specification, as recorded in the table above. |
 | Interface version | Not declared | `cellular_modem_hal_api.h` defines **no** interface version macro of any kind. A caller cannot determine, at compile time or at run time, which revision of this interface a platform was built against. The version reported by `Modem_Firmware_Version` is the **modem's firmware** version, not a version of this interface. |
 | Release tag | `1.0.0` | The repository's only git tag, dated 10 June 2024, matching the single section in the changelog. This is the release this document describes. |
-| Generated-site version string | `1.0.0-3-gf739a9a` | The output of `git describe --tags`, which `docs/generate_docs.sh` passes to the documentation generator as `PROJECT_VERSION`. It denotes the `1.0.0` tag plus three later commits, and is **not** a version. |
+| Generated-site version string | Computed at build time; no literal value is recorded here | The output of `git describe --tags`, which `docs/generate_docs.sh` passes to the documentation generator as `PROJECT_VERSION`. It takes the form `<tag>-<commits-since-tag>-g<abbreviated-commit>` — the nearest tag, the number of commits made since it, and the abbreviated commit — so it denotes a point after a release and is **not** a version. Because it changes with every commit, including the commit that would record it, a reader who needs the string for the revision in front of them runs `git describe --tags` against that revision. |
+
+**Provenance of this page.** It was renamed from `docs/pages/CellularModemHalSpec.md` to `docs/pages/halSpec.md` in the same change that rewrote it against the canonical topic set. Git records a rename only where the two versions still resemble each other, and a full rewrite does not, so `git log --follow -- docs/pages/halSpec.md` begins at that change: the revisions before it are reached with `git log -- docs/pages/CellularModemHalSpec.md`.
 
 *Derived from `CHANGELOG.md`, the repository's git tags, `docs/generate_docs.sh`:26,
 and `include/cellular_modem_hal_api.h`, searched in full — it declares no version macro.*
@@ -24,7 +26,7 @@ and `include/cellular_modem_hal_api.h`, searched in full — it declares no vers
 
 - `HAL` \- Hardware Abstraction Layer
 - `HALIF` \- HAL Interface
-- `OEM` \- Original Equipment Manufacture
+- `OEM` \- Original Equipment Manufacturer
 - `RDK` \- Reference Design Kit
 - `RDK-B` \- Reference Design Kit for Broadband Devices
 - `SLA` \- Service Level Agreement
@@ -70,7 +72,7 @@ library.
 Within those boundaries the Cellular Modem HAL is intended to be a shared resource, accessible and
 usable by multiple `RDK-B` components and processes.
 
-*Derived from `include/cellular_modem_hal_api.h`:20-31 for the capability list and :72, :90 and :103
+*Derived from `include/cellular_modem_hal_api.h`:20-31 for the capability list and :171, :259 and :376
 for the declarations; from the `RDK-B` workspace repository inventory (`README.md`:29-30 for the
 boundary against `rdkb-halif-cellular`, and its owning-service tables at :90-104 for the absence of
 an owning service); and from the shared-resource statement retained from the previous revision of
@@ -87,8 +89,8 @@ may substitute for part of the implementation.
 A caller can therefore assume that a platform providing this HAL provides all three functions, and
 does not have to test for a feature subset before calling one.
 
-*Derived from `include/cellular_modem_hal_api.h`, searched in full: the include guard at :34-35 and
-the `__cplusplus` guards at :40 and :105 are its only conditionals.*
+*Derived from `include/cellular_modem_hal_api.h`, searched in full: the include guard at :53-122 and
+the `__cplusplus` guards at :59 and :378 are its only conditionals.*
 
 ## Component Runtime Execution Requirements
 
@@ -119,7 +121,7 @@ reachable, and must not treat a slow return as a failure. See "Blocking calls".
 the hardware, or what a caller should do if the modem never becomes ready. A caller must not assume
 a bound.
 
-*Derived from the declarations at `include/cellular_modem_hal_api.h`:72, :90 and :103 — the complete
+*Derived from the declarations at `include/cellular_modem_hal_api.h`:171, :259 and :376 — the complete
 set, none of which initializes or tears down anything — together with the dependency and
 hardware-readiness statements retained from the previous revision of this specification.*
 
@@ -146,7 +148,7 @@ the interface introduces no unsynchronized state of its own.
 a caller must serialize all calls to the interface rather than only calls to the same function.
 
 *Derived from the thread-safety and vendor-responsibility statements retained from the previous
-revision of this specification, and from `include/cellular_modem_hal_api.h`:72, :90 and :103, whose
+revision of this specification, and from `include/cellular_modem_hal_api.h`:171, :259 and :376, whose
 signatures carry no synchronization primitive.*
 
 ### Process Model
@@ -174,8 +176,13 @@ This interface exchanges exactly one buffer, and its whole memory contract follo
 
 - Allocate the buffer passed to `Modem_Firmware_Version` before the call. The header sets its minimum
   size at 128 bytes, sized for a value such as `EM06ALAR04A01M4G_01.003.01.003`.
-- Own that buffer for its whole lifetime and release it afterwards. This interface never frees caller
-  memory.
+- Own that buffer for its whole lifetime and release it on its own terms. This interface never frees
+  caller memory, because it declares no release call and no function that returns allocated storage.
+- Keep that buffer valid rather than assuming the implementation has finished with it at the moment
+  the call returns. **This interface does not state whether an implementation retains the pointer**,
+  so a caller that frees or reuses the storage immediately after the call does so without an
+  interface guarantee that doing so is safe, and must not rely on the implementation having copied
+  the value out.
 - Supply valid storage. The header names an invalid parameter among the reasons the call reports
   failure, so a caller can expect a failure code rather than a success code from a bad pointer; the
   header does not, however, require an implementation to detect one.
@@ -192,13 +199,19 @@ This interface exchanges exactly one buffer, and its whole memory contract follo
 - Allocate and release internal memory for its own operational needs, and release all of it when the
   vendor software terminates or closes its connection to the HAL. Managing that memory is the
   vendor's sole responsibility.
-- Retain no reference to the caller's pointer once the call has returned. Every call in this
-  interface is synchronous and there is no callback, so no implementation has a reason to hold it.
+- **Pointer retention after return is not settled by this interface, and this specification does not
+  settle it either.** Every call is synchronous and no callback is declared, so the interface
+  publishes no mechanism through which a retained pointer would later be used \- but that is an
+  absence of evidence, not a statement of non-retention, and an implementation that does hold the
+  pointer contradicts nothing here. The obligation the gap creates falls on the caller and is stated
+  under `Caller Responsibilities`.
 
-*Derived from `include/cellular_modem_hal_api.h`:97 for the out-parameter and its 128-byte minimum,
-:101 for invalid parameter as a failure reason, and :72 and :90 for the two argument-free calls,
+*Derived from `include/cellular_modem_hal_api.h`:276 for the out-parameter and its 128-byte minimum,
+:342 for invalid parameter as a failure reason, and :171 and :259 for the two argument-free calls,
 together with the memory-ownership statements retained from the previous revision of this
-specification.*
+specification. The retention statement is derived from an absence rather than a claim: neither the
+header nor the previous revision of this specification says anything about pointer retention, which
+is why this topic records the gap instead of resolving it.*
 
 ### Power Management Requirements
 
@@ -212,7 +225,7 @@ repository inventory records modem power configuration as belonging to the separ
 `rdkb-halif-cellular` interface. Power sequencing of the modem is not reachable through this HAL.
 
 *Derived from the power-management statement retained from the previous revision of this
-specification, from `include/cellular_modem_hal_api.h`:72, :90 and :103 — the complete set of
+specification, from `include/cellular_modem_hal_api.h`:171, :259 and :376 — the complete set of
 declarations, none of which controls power state — and from `README.md`:29 of the `RDK-B` workspace
 inventory.*
 
@@ -287,8 +300,8 @@ The practical consequence is that a caller's failure handling is uniform across 
 can retry, escalate or report, but it cannot branch on the cause. Diagnosing a cause means reading
 the vendor log described under "Logging and debugging requirements".
 
-*Derived from `include/cellular_modem_hal_api.h`:37 and :38 for the two macros, and :63-69, :81-87
-and :99-101 for the per-API return documentation, together with the synchronous-error-reporting
+*Derived from `include/cellular_modem_hal_api.h`:56 and :57 for the two macros, and :119-136, :210-224
+and :339-348 for the per-API return documentation, together with the synchronous-error-reporting
 statement retained from the previous revision of this specification.*
 
 ### Persistence Model
@@ -303,7 +316,7 @@ Any state a calling application needs to survive that, or to survive a `Modem_Re
 application's to persist.
 
 *Derived from the persistence statement retained from the previous revision of this specification,
-and from `include/cellular_modem_hal_api.h`:72, :90 and :103.*
+and from `include/cellular_modem_hal_api.h`:171, :259 and :376.*
 
 ## Non functional requirements
 
@@ -359,7 +372,7 @@ this interface runs unless a caller calls one of the three functions, so the int
 idle cost. Whether a vendor implementation maintains background activity of its own is not specified
 here.
 
-*Derived from `include/cellular_modem_hal_api.h`:97 for the buffer, and from the repository contents,
+*Derived from `include/cellular_modem_hal_api.h`:276 for the buffer, and from the repository contents,
 verified in full: no `Makefile`, `CMakeLists.txt`, `configure.ac`, `Makefile.am` or Yocto recipe is
 present.*
 
@@ -423,11 +436,11 @@ The role of adjusting the interface, guided by versioning, rests solely within a
 requirements. Vendors are thereafter obliged to align their implementation with a designated version
 of the interface; under `SLA` terms they may transition to newer versions as demand requires.
 
-Each API interface is versioned using [Semantic Versioning 2.0.0](https://semver.org/), and vendor
+Each API interface is versioned using [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html), and vendor
 code complies with a specific version of the interface.
 
 **This interface declares no build-variability flag.** Every preprocessor conditional in the header
-is either its include guard at :34-35 or the `__cplusplus` linkage guard at :40 and :105. No
+is either its include guard at :121-122 or the `__cplusplus` linkage guard at :59 and :378. No
 compile-time flag adds or removes any part of the surface, so every build of this header exposes the
 same three functions and the same two macros. A caller does not have to test for a feature subset,
 and there is no flag whose effect this document could describe.
@@ -439,7 +452,7 @@ therefore select expected behaviour from the platform's source revision rather t
 through the interface.
 
 *Derived from the versioning statements retained from the previous revision of this specification, and
-from `include/cellular_modem_hal_api.h`:34-35, :40 and :105, searched in full for conditionals and
+from `include/cellular_modem_hal_api.h`:53-122, :150 and :297, searched in full for conditionals and
 version macros.*
 
 ### Platform or Product Customization
@@ -485,14 +498,15 @@ nothing an implementation has to create before use or destroy afterwards.
 
 The only resource with a lifecycle here is the firmware-version buffer, and it belongs to the caller:
 the caller allocates it before `Modem_Firmware_Version`, reads it after a successful return, and
-frees it when finished. The interface retains no reference to it. "Memory Model" states that contract
-in full.
+frees it when finished. Whether the implementation retains a reference to it after the call returns
+is not stated by this interface; `Memory Model` records that gap and the conservative course it
+leaves a caller.
 
 Because there is no context object there is also no notion of an instance. This interface addresses
 *the* modem: no argument identifies which modem a call applies to, so a platform carrying more than
 one cannot select between them through this interface.
 
-*Derived from `include/cellular_modem_hal_api.h`:72, :90, :97 and :103 — the complete set of
+*Derived from `include/cellular_modem_hal_api.h`:171, :259, :259 and :376 — the complete set of
 declarations and the only parameter any of them takes.*
 
 #### Method Sequencing
@@ -513,7 +527,7 @@ doing so.
 A caller that has to sequence work around a reset or a reboot must therefore obtain the readiness
 signal from outside this interface, because nothing within it provides one.
 
-*Derived from `include/cellular_modem_hal_api.h`:59-72 and :75-90 for what the two action calls state
+*Derived from `include/cellular_modem_hal_api.h`:159-204 and :206-249 for what the two action calls state
 about their own effects, and from the absence of any readiness or status declaration in the header.*
 
 #### State-Dependent Behavior
@@ -531,7 +545,7 @@ and all of them arrive as the same undifferentiated failure code.
 **Nothing beyond that is established.** This interface defines no state model, no readiness query and
 no transition set. "State Diagram" records that gap rather than filling it.
 
-*Derived from `include/cellular_modem_hal_api.h`:65-69 and :83-87 for the documented failure
+*Derived from `include/cellular_modem_hal_api.h`:128-136 and :218-224 for the documented failure
 conditions, and from the header's complete declaration set.*
 
 ### Data Structures and Defines
@@ -548,8 +562,8 @@ declaration.
 
 | Define | Declared at | What it represents |
 | --- | --- | --- |
-| `STATUS_SUCCESS` | :37 | The value `0`, returned when an operation completed successfully. Returned by all three functions. |
-| `STATUS_FAILED` | :38 | The value `-1`, returned when an operation did not complete. Returned by all three functions, with no distinction between causes — see "Internal Error Handling". |
+| `STATUS_SUCCESS` | :56 | The value `0`, returned when an operation completed successfully. Returned by all three functions. |
+| `STATUS_FAILED` | :57 | The value `-1`, returned when an operation did not complete. Returned by all three functions, with no distinction between causes — see "Internal Error Handling". |
 
 **The one buffer contract.** `Modem_Firmware_Version` takes a single `char *` out-parameter,
 `firmware_version`, pointing at caller-allocated storage of at least 128 bytes, into which the
@@ -562,7 +576,7 @@ No other public type exists in this interface. A type name attributed to this HA
 should be treated as an error: at the release this document describes,
 `include/cellular_modem_hal_api.h` declares three functions and two macros, and nothing more.
 
-*Derived from `include/cellular_modem_hal_api.h`:37, :38 and :97, and from the header searched in full
+*Derived from `include/cellular_modem_hal_api.h`:56, :57 and :276, and from the header searched in full
 for `typedef`, `struct` and `enum` declarations — it carries none.*
 
 ### API Surface
@@ -583,20 +597,20 @@ the easiest error to make against this interface.
 
 | API | Declared at | Purpose |
 | --- | --- | --- |
-| `Modem_FactoryReset` | :72 | Resets the modem to its default factory settings, erasing custom configuration and restoring every setting to its original state. Used to resolve a software problem, or to clear configuration before a new setup. Takes no arguments. |
-| `Modem_Reboot` | :90 | Reboots the modem hardware, attempting a safe shutdown and restart so that all services restart cleanly. Used to apply new settings, or to recover from an unstable state. Takes no arguments. |
+| `Modem_FactoryReset` | :204 | Resets the modem to its default factory settings, erasing custom configuration and restoring every setting to its original state. Used to resolve a software problem, or to clear configuration before a new setup. Takes no arguments. |
+| `Modem_Reboot` | :249 | Reboots the modem hardware, attempting a safe shutdown and restart so that all services restart cleanly. Used to apply new settings, or to recover from an unstable state. Takes no arguments. |
 
 **Modem information:**
 
 | API | Declared at | Purpose |
 | --- | --- | --- |
-| `Modem_Firmware_Version` | :103 | Reads the modem's current firmware version into the caller-allocated buffer named by its single `char *` out-parameter, which must be at least 128 bytes. |
+| `Modem_Firmware_Version` | :291 | Reads the modem's current firmware version into the caller-allocated buffer named by its single `char *` out-parameter, which must be at least 128 bytes. |
 
 This heading is the boundary of the two ways to read this document. Everything above it answers what
 this interface is and how to call it; everything below it, together with "Non functional
 requirements", carries the depth a caller needs when a call does not behave as expected.
 
-*Derived from `include/cellular_modem_hal_api.h`:59-72, :74-90 and :92-103 — the three Doxygen blocks
+*Derived from `include/cellular_modem_hal_api.h`:159-204, :206-249 and :251-291 — the three Doxygen blocks
 and the declarations they document.*
 
 ### Sequence Diagram
@@ -634,7 +648,7 @@ render in the Doxygen-generated HTML, where the diagram source is displayed inst
 is stated rather than worked around, because the alternative form would break the surface a developer
 actually reads.
 
-*Derived from `include/cellular_modem_hal_api.h`:72, :90, :97 and :103; every identifier named in the
+*Derived from `include/cellular_modem_hal_api.h`:171, :259, :259 and :376; every identifier named in the
 diagram is one this header declares.*
 
 ### State Diagram
@@ -665,7 +679,7 @@ caller must not assume a state model, and a test author asserting post-reset or 
 must take the expected transitions from the platform or the vendor rather than from this interface.
 This gap is recorded for the interface owner named under "Quality Control" rather than filled in.
 
-*Derived from `include/cellular_modem_hal_api.h`:37 and :38 for the two enumerated values, and from
-the complete declaration set at :72, :90 and :103, which contains no state query and no transition
+*Derived from `include/cellular_modem_hal_api.h`:56 and :57 for the two enumerated values, and from
+the complete declaration set at :204, :249 and :291, which contains no state query and no transition
 statement.*
 
