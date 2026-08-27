@@ -4,8 +4,8 @@
 
 | Date | Comment | Version |
 | --- | --- | --- |
-| 08/24/26 | Rewritten against the canonical HAL specification topic set, and renamed from `CellularModemHalSpec.md` to `halSpec.md`. Added `Version History`, `Optional Components`, `Data Structures and Defines`, `API Surface` and `State Diagram`. The API narrative was discarded and rebuilt from the header: the previous revision described seven functions and three types that this interface has never declared. | 1.0.1 |
-| 06/10/24 | Initial release of the Cellular Modem HAL interface definition — `RDKB-52498`, migration of the Cellular Modem HAL header to GitHub, followed by refinement after MTA HAL review comments. | 1.0.0 |
+| 2024-06-10 | Initial release of the Cellular Modem HAL interface definition — `RDKB-52498`, migration of the Cellular Modem HAL header to GitHub, followed by refinement after MTA HAL review comments. | 1.0.0 |
+| 2026-08-24 | Rewritten against the canonical HAL specification topic set, and renamed from `CellularModemHalSpec.md` to `halSpec.md`. Added `Version History`, `Optional Components`, `Data Structures and Defines`, `API Surface` and `State Diagram`. The API narrative was discarded and rebuilt from the header: the previous revision described seven functions and three types that this interface has never declared. | 1.0.1 |
 
 Four version identities apply to this repository. They are deliberately kept apart, because a caller
 needs a different one in each case and the previous revision of this page presented none of them.
@@ -14,10 +14,10 @@ needs a different one in each case and the previous revision of this page presen
 | --- | --- | --- |
 | Document revision | `1.0.1` | The revision of this specification, as recorded in the table above. |
 | Interface version | Not declared | `cellular_modem_hal_api.h` defines **no** interface version macro of any kind. A caller cannot determine, at compile time or at run time, which revision of this interface a platform was built against. The version reported by `Modem_Firmware_Version` is the **modem's firmware** version, not a version of this interface. |
-| Release tag | `1.0.0` | The repository's only git tag, dated 10 June 2024, matching the single section in the changelog. This is the release this document describes. |
+| Release tag | `1.0.0` | The repository's only git tag, dated 2024-06-10, matching the single section in the changelog. This is the release this document describes. |
 | Generated-site version string | Computed at build time; no literal value is recorded here | The output of `git describe --tags`, which `docs/generate_docs.sh` passes to the documentation generator as `PROJECT_VERSION`. It takes the form `<tag>-<commits-since-tag>-g<abbreviated-commit>` — the nearest tag, the number of commits made since it, and the abbreviated commit — so it denotes a point after a release and is **not** a version. Because it changes with every commit, including the commit that would record it, a reader who needs the string for the revision in front of them runs `git describe --tags` against that revision. |
 
-**Provenance of this page.** It was renamed from `docs/pages/CellularModemHalSpec.md` to `docs/pages/halSpec.md` in the same change that rewrote it against the canonical topic set. Git records a rename only where the two versions still resemble each other, and a full rewrite does not, so `git log --follow -- docs/pages/halSpec.md` begins at that change: the revisions before it are reached with `git log -- docs/pages/CellularModemHalSpec.md`.
+**Provenance of this page.** It was renamed from `docs/pages/CellularModemHalSpec.md` to `docs/pages/halSpec.md` in the same change that rewrote it against the canonical topic set. Git records a rename only where the two versions still resemble each other, and a full rewrite does not, so `git log --follow -- docs/pages/halSpec.md` begins at that change: the revisions before it are reached with `git log -- docs/pages/CellularModemHalSpec.md`. That resemblance is measured, and the threshold is 50% by default, so lowering it to git's floor \- `git log --follow -M1% -- docs/pages/halSpec.md` \- is worth trying first: where it pairs the two paths it shows both stretches of history in one listing, and where the rewrite kept too little of the original for git to pair them at any threshold the second command above remains the only route to the earlier revisions.
 
 *Derived from `CHANGELOG.md`, the repository's git tags, `docs/generate_docs.sh`:26,
 and `include/cellular_modem_hal_api.h`, searched in full — it declares no version macro.*
