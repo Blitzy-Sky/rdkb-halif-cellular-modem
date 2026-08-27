@@ -5,7 +5,7 @@
 | Date | Comment | Version |
 | --- | --- | --- |
 | 2024-06-10 | Initial release of the Cellular Modem HAL interface definition — `RDKB-52498`, migration of the Cellular Modem HAL header to GitHub, followed by refinement after MTA HAL review comments. | 1.0.0 |
-| 2026-08-24 | Rewritten against the canonical HAL specification topic set, and renamed from `CellularModemHalSpec.md` to `halSpec.md`. Added `Version History`, `Optional Components`, `Data Structures and Defines`, `API Surface` and `State Diagram`. The API narrative was discarded and rebuilt from the header: the previous revision described seven functions and three types that this interface has never declared. | 1.0.1 |
+| 2026-08-24 | Rewritten against the canonical HAL specification topic set, and renamed from `CellularModemHalSpec.md` to [halSpec.md](halSpec.md). Added `Version History`, `Optional Components`, `Data Structures and Defines`, `API Surface` and `State Diagram`. The API narrative was discarded and rebuilt from the header: the previous revision described seven functions and three types that this interface has never declared. | 1.0.1 |
 
 Four version identities apply to this repository. They are deliberately kept apart, because a caller
 needs a different one in each case and the previous revision of this page presented none of them.
@@ -17,9 +17,17 @@ needs a different one in each case and the previous revision of this page presen
 | Release tag | `1.0.0` | The repository's only git tag, dated 2024-06-10, matching the single section in the changelog. This is the release this document describes. |
 | Generated-site version string | Computed at build time; no literal value is recorded here | The output of `git describe --tags`, which `docs/generate_docs.sh` passes to the documentation generator as `PROJECT_VERSION`. It takes the form `<tag>-<commits-since-tag>-g<abbreviated-commit>` — the nearest tag, the number of commits made since it, and the abbreviated commit — so it denotes a point after a release and is **not** a version. Because it changes with every commit, including the commit that would record it, a reader who needs the string for the revision in front of them runs `git describe --tags` against that revision. |
 
-**Provenance of this page.** It was renamed from `docs/pages/CellularModemHalSpec.md` to `docs/pages/halSpec.md` in the same change that rewrote it against the canonical topic set. Git records a rename only where the two versions still resemble each other, and a full rewrite does not, so `git log --follow -- docs/pages/halSpec.md` begins at that change: the revisions before it are reached with `git log -- docs/pages/CellularModemHalSpec.md`. That resemblance is measured, and the threshold is 50% by default, so lowering it to git's floor \- `git log --follow -M1% -- docs/pages/halSpec.md` \- is worth trying first: where it pairs the two paths it shows both stretches of history in one listing, and where the rewrite kept too little of the original for git to pair them at any threshold the second command above remains the only route to the earlier revisions.
+**Provenance of this page.** It was renamed from `docs/pages/CellularModemHalSpec.md` to the canonical `docs/pages/` specification page in the same change that rewrote it against the canonical topic set. Git records a rename only where the two versions still resemble each other, and a full rewrite does not, so a `--follow` listing of the canonical path begins at that change, and the revisions before it are reached by listing the legacy path instead:
 
-*Derived from `CHANGELOG.md`, the repository's git tags, `docs/generate_docs.sh`:26,
+```sh
+git log --follow -- docs/pages/halSpec.md
+git log --follow -M1% -- docs/pages/halSpec.md
+git log -- docs/pages/CellularModemHalSpec.md
+```
+
+That resemblance is measured, and the threshold is 50% by default, so lowering it to git's floor with the second command above is worth trying first: where it pairs the two paths it shows both stretches of history in one listing, and where the rewrite kept too little of the original for git to pair them at any threshold the third command remains the only route to the earlier revisions.
+
+*Derived from the repository-root changelog, the repository's git tags, `docs/generate_docs.sh`:26,
 and `include/cellular_modem_hal_api.h`, searched in full — it declares no version macro.*
 
 ## Acronyms
@@ -73,7 +81,7 @@ Within those boundaries the Cellular Modem HAL is intended to be a shared resour
 usable by multiple `RDK-B` components and processes.
 
 *Derived from `include/cellular_modem_hal_api.h`:20-31 for the capability list and :171, :259 and :376
-for the declarations; from the `RDK-B` workspace repository inventory (`README.md`:29-30 for the
+for the declarations; from the `RDK-B` workspace repository inventory (its README, lines 29-30, for the
 boundary against `rdkb-halif-cellular`, and its owning-service tables at :90-104 for the absence of
 an owning service); and from the shared-resource statement retained from the previous revision of
 this specification.*
@@ -226,7 +234,7 @@ repository inventory records modem power configuration as belonging to the separ
 
 *Derived from the power-management statement retained from the previous revision of this
 specification, from `include/cellular_modem_hal_api.h`:171, :259 and :376 — the complete set of
-declarations, none of which controls power state — and from `README.md`:29 of the `RDK-B` workspace
+declarations, none of which controls power state — and from line 29 of the `RDK-B` workspace
 inventory.*
 
 ### Asynchronous Notification Model
@@ -394,21 +402,21 @@ reference hardware, and a test author should treat the unspecified items named t
 questions for the platform rather than as facts to assert.
 
 **Keeping this document accurate.** Every topic here cites the file its content was derived from. Any
-change to a cited source — principally `include/cellular_modem_hal_api.h`, `CHANGELOG.md` and
-`docs/generate_docs.sh` — obliges a review of the topics that cite it. The reviewer for that
+change to a cited source — principally `include/cellular_modem_hal_api.h`, the repository-root
+changelog and `docs/generate_docs.sh` — obliges a review of the topics that cite it. The reviewer for that
 obligation is `@rdkcentral/rdkb-hal-advisory`, recorded by `.github/CODEOWNERS` as the owner of every
 path in this repository.
 
 *Derived from the quality-assurance statements retained from the previous revision of this
 specification, from `.github/CODEOWNERS`, and from the reference-platform availability table of the
-`RDK-B` workspace inventory (`README.md`:102-103).*
+`RDK-B` workspace inventory README, lines 102-103.*
 
 ### Licensing
 
 The implementation is expected to be released under the
 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), which is the licence this
 repository itself carries — see the `LICENSE` and `NOTICE` files at the repository root, which are
-also rendered into this documentation set as `LICENSE.md` and `NOTICE.md`.
+also rendered into this documentation set as [LICENSE.md](LICENSE.md) and [NOTICE.md](NOTICE.md).
 
 *Derived from the licensing statement retained from the previous revision of this specification, and
 from the repository's own `LICENSE` and the Apache-2.0 header carried by
@@ -472,7 +480,7 @@ no configuration file is shipped.*
 ## Interface API Documentation
 
 All HAL function prototypes and datatype definitions are available in the
-[`cellular_modem_hal_api.h`](../../include/cellular_modem_hal_api.h) file.
+`cellular_modem_hal_api.h` file.
 
 1. Components/Process must include `cellular_modem_hal_api.h` to make use of Cellular Modem HAL
    capabilities.
@@ -556,7 +564,7 @@ interface is a character buffer and an `int` return value. There is nothing for 
 and nothing to interpret beyond these two values.
 
 **Macro constants.** Both are declared in
-[`cellular_modem_hal_api.h`](../../include/cellular_modem_hal_api.h) and together form the complete
+`cellular_modem_hal_api.h` and together form the complete
 return-code vocabulary of this interface. Line numbers are given so a caller can go straight to the
 declaration.
 
@@ -584,7 +592,7 @@ for `typedef`, `struct` and `enum` declarations — it carries none.*
 All three declared functions are listed below by exact identifier, grouped by functional area.
 Per-API detail — argument direction, the buffer minimum, the documented failure conditions and the
 return-code list — is carried by the Doxygen block on each declaration in
-[`include/cellular_modem_hal_api.h`](../../include/cellular_modem_hal_api.h), and the line numbers
+[include/cellular_modem_hal_api.h](../../include/cellular_modem_hal_api.h), and the line numbers
 below point at it.
 
 All three functions return an `int` status code drawn from the two values under "Internal Error
@@ -610,7 +618,7 @@ This heading is the boundary of the two ways to read this document. Everything a
 this interface is and how to call it; everything below it, together with "Non functional
 requirements", carries the depth a caller needs when a call does not behave as expected.
 
-*Derived from `include/cellular_modem_hal_api.h`:159-204, :206-249 and :251-291 — the three Doxygen blocks
+*Derived from [include/cellular_modem_hal_api.h](../../include/cellular_modem_hal_api.h):159-204, :206-249 and :251-291 — the three Doxygen blocks
 and the declarations they document.*
 
 ### Sequence Diagram
@@ -643,7 +651,7 @@ and no deferred completion — and the vendor leg of each exchange is whatever t
 to reach the modem, which this interface does not constrain.
 
 Both diagrams in this document are fenced Mermaid. They render on GitHub, which is the primary
-surface for this specification because the repository's `README.md` is a symlink to it; they do not
+surface for this specification because the repository's README is a symlink to it; they do not
 render in the Doxygen-generated HTML, where the diagram source is displayed instead. That limitation
 is stated rather than worked around, because the alternative form would break the surface a developer
 actually reads.

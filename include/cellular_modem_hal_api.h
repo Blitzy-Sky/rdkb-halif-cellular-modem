@@ -35,7 +35,7 @@
  * calls and nothing here delivers an asynchronous notification. The repository
  * specification records the same scope under `Initialization and Startup`,
  * `Asynchronous Notification Model` and `Data Structures and Defines`
- * (`docs/pages/halSpec.md`).
+ * in the HAL specification.
  *
  * Two of the three operations act on the modem - `Modem_FactoryReset()` and
  * `Modem_Reboot()` - and the third, `Modem_Firmware_Version()`, reads a value into a
@@ -66,7 +66,7 @@ extern "C"{
  *
  * Each returns an int and reports its outcome synchronously through that return
  * value; no failure is reported out of band, which the repository specification
- * states under `Internal Error Handling` (`docs/pages/halSpec.md`). STATUS_SUCCESS
+ * states under `Internal Error Handling` in the HAL specification. STATUS_SUCCESS
  * and STATUS_FAILED, declared above, are the complete return vocabulary this
  * interface defines - it declares no error enumeration, no diagnostic out-parameter
  * and no secondary status call, so every failure arrives as the same undifferentiated
@@ -267,7 +267,7 @@ int Modem_Reboot(void);
  * whatever firmware the modem is currently running. The value leaves through the
  * out-parameter while the return value reports only whether the read succeeded, so
  * this function is status-returning rather than value-returning - the distinction the
- * repository specification draws under `API Surface` (`docs/pages/halSpec.md`).
+ * repository specification draws under `API Surface` in the HAL specification.
  *
  * After a successful call the caller can observe the version characters in its own
  * buffer, subject to the bounds below. Nothing else about the modem becomes observable:
