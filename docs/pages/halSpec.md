@@ -27,8 +27,9 @@ git log -- docs/pages/CellularModemHalSpec.md
 
 That resemblance is measured, and the threshold is 50% by default, so lowering it to git's floor with the second command above is worth trying first: where it pairs the two paths it shows both stretches of history in one listing, and where the rewrite kept too little of the original for git to pair them at any threshold the third command remains the only route to the earlier revisions.
 
-*Derived from the repository-root changelog, the repository's git tags, `docs/generate_docs.sh`:26,
-and `include/cellular_modem_hal_api.h`, searched in full — it declares no version macro.*
+*Derived from the repository-root changelog, the repository's git tags, `docs/generate_docs.sh`:262,271
+(where the published version string is taken from `git describe --tags`), and
+`include/cellular_modem_hal_api.h`, searched in full — it declares no version macro.*
 
 ## Acronyms
 
@@ -97,7 +98,7 @@ may substitute for part of the implementation.
 A caller can therefore assume that a platform providing this HAL provides all three functions, and
 does not have to test for a feature subset before calling one.
 
-*Derived from `include/cellular_modem_hal_api.h`, searched in full: the include guard at :53-122 and
+*Derived from `include/cellular_modem_hal_api.h`, searched in full: the include guard at :53-54 and :382 and
 the `__cplusplus` guards at :59 and :378 are its only conditionals.*
 
 ## Component Runtime Execution Requirements
@@ -448,7 +449,7 @@ Each API interface is versioned using [Semantic Versioning 2.0.0](https://semver
 code complies with a specific version of the interface.
 
 **This interface declares no build-variability flag.** Every preprocessor conditional in the header
-is either its include guard at :121-122 or the `__cplusplus` linkage guard at :59 and :378. No
+is either its include guard at :53-54 and :382 or the `__cplusplus` linkage guard at :59 and :378. No
 compile-time flag adds or removes any part of the surface, so every build of this header exposes the
 same three functions and the same two macros. A caller does not have to test for a feature subset,
 and there is no flag whose effect this document could describe.
@@ -460,7 +461,7 @@ therefore select expected behaviour from the platform's source revision rather t
 through the interface.
 
 *Derived from the versioning statements retained from the previous revision of this specification, and
-from `include/cellular_modem_hal_api.h`:53-122, :150 and :297, searched in full for conditionals and
+from `include/cellular_modem_hal_api.h`:53-54, :59, :378 and :382, searched in full for conditionals and
 version macros.*
 
 ### Platform or Product Customization
@@ -514,8 +515,8 @@ Because there is no context object there is also no notion of an instance. This 
 *the* modem: no argument identifies which modem a call applies to, so a platform carrying more than
 one cannot select between them through this interface.
 
-*Derived from `include/cellular_modem_hal_api.h`:171, :259, :259 and :376 — the complete set of
-declarations and the only parameter any of them takes.*
+*Derived from `include/cellular_modem_hal_api.h`:171, :259 and :376 — the complete set of
+declarations — and :276, the only parameter any of them takes.*
 
 #### Method Sequencing
 
@@ -535,7 +536,7 @@ doing so.
 A caller that has to sequence work around a reset or a reboot must therefore obtain the readiness
 signal from outside this interface, because nothing within it provides one.
 
-*Derived from `include/cellular_modem_hal_api.h`:159-204 and :206-249 for what the two action calls state
+*Derived from `include/cellular_modem_hal_api.h`:83-171 and :173-259 for what the two action calls state
 about their own effects, and from the absence of any readiness or status declaration in the header.*
 
 #### State-Dependent Behavior
@@ -595,6 +596,8 @@ return-code list — is carried by the Doxygen block on each declaration in
 [include/cellular_modem_hal_api.h](../../include/cellular_modem_hal_api.h), and the line numbers
 below point at it.
 
+**Where these pointers resolve.** The locators in this topic are relative paths into `include/cellular_modem_hal_api.h`, the form this documentation set uses throughout, so they resolve on GitHub and in a checkout \- the surface a developer using this repository reads. They do **not** resolve from inside the generated documentation site: the generator copies each link target verbatim into a page one directory below this file, so a site served with `docs/output/html` as its root has nothing above that root to reach and answers `404`, and opened from the filesystem the same target does not exist. Follow a source pointer on GitHub or in a checkout; inside the generated site, reach the same declaration through its `Files` and function-index pages.
+
 All three functions return an `int` status code drawn from the two values under "Internal Error
 Handling". None of them returns a value and none of them is `void`. `Modem_Firmware_Version` in
 particular is **status-returning, not value-returning**: the firmware version leaves through its
@@ -605,20 +608,20 @@ the easiest error to make against this interface.
 
 | API | Declared at | Purpose |
 | --- | --- | --- |
-| `Modem_FactoryReset` | :204 | Resets the modem to its default factory settings, erasing custom configuration and restoring every setting to its original state. Used to resolve a software problem, or to clear configuration before a new setup. Takes no arguments. |
-| `Modem_Reboot` | :249 | Reboots the modem hardware, attempting a safe shutdown and restart so that all services restart cleanly. Used to apply new settings, or to recover from an unstable state. Takes no arguments. |
+| `Modem_FactoryReset` | :171 | Resets the modem to its default factory settings, erasing custom configuration and restoring every setting to its original state. Used to resolve a software problem, or to clear configuration before a new setup. Takes no arguments. |
+| `Modem_Reboot` | :259 | Reboots the modem hardware, attempting a safe shutdown and restart so that all services restart cleanly. Used to apply new settings, or to recover from an unstable state. Takes no arguments. |
 
 **Modem information:**
 
 | API | Declared at | Purpose |
 | --- | --- | --- |
-| `Modem_Firmware_Version` | :291 | Reads the modem's current firmware version into the caller-allocated buffer named by its single `char *` out-parameter, which must be at least 128 bytes. |
+| `Modem_Firmware_Version` | :376 | Reads the modem's current firmware version into the caller-allocated buffer named by its single `char *` out-parameter, which must be at least 128 bytes. |
 
 This heading is the boundary of the two ways to read this document. Everything above it answers what
 this interface is and how to call it; everything below it, together with "Non functional
 requirements", carries the depth a caller needs when a call does not behave as expected.
 
-*Derived from [include/cellular_modem_hal_api.h](../../include/cellular_modem_hal_api.h):159-204, :206-249 and :251-291 — the three Doxygen blocks
+*Derived from [include/cellular_modem_hal_api.h](../../include/cellular_modem_hal_api.h):83-171, :173-259 and :261-376 — the three Doxygen blocks
 and the declarations they document.*
 
 ### Sequence Diagram
@@ -656,7 +659,7 @@ render in the Doxygen-generated HTML, where the diagram source is displayed inst
 is stated rather than worked around, because the alternative form would break the surface a developer
 actually reads.
 
-*Derived from `include/cellular_modem_hal_api.h`:171, :259, :259 and :376; every identifier named in the
+*Derived from `include/cellular_modem_hal_api.h`:171, :259 and :376; every identifier named in the
 diagram is one this header declares.*
 
 ### State Diagram
@@ -688,6 +691,6 @@ must take the expected transitions from the platform or the vendor rather than f
 This gap is recorded for the interface owner named under "Quality Control" rather than filled in.
 
 *Derived from `include/cellular_modem_hal_api.h`:56 and :57 for the two enumerated values, and from
-the complete declaration set at :204, :249 and :291, which contains no state query and no transition
+the complete declaration set at :171, :259 and :376, which contains no state query and no transition
 statement.*
 
