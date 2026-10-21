@@ -101,10 +101,13 @@ exchange no memory.
 #### Caller Responsibilities
 
 - Pass `Modem_Firmware_Version` a valid, writable, non-`NULL` buffer of at least 128 bytes.
-- Own that buffer and release it when finished; the interface never frees caller memory.
+- Own that buffer; the interface never frees caller memory.
+- Keep the buffer allocated and do not reuse it after the call returns; release or reuse it only
+  once the vendor implementation confirms that it no longer uses the buffer.
 - Read the buffer only after the call returns `STATUS_SUCCESS`, and discard its contents after
   `STATUS_FAILED`.
-- Bound every read of the buffer by its allocated size rather than by a terminator.
+- Zero the buffer before the call, and bound every read of it by its allocated size rather than by
+  a terminator.
 
 #### Module Responsibilities
 
@@ -192,8 +195,8 @@ before deployment. Both the HAL wrapper and any third-party software interacting
 prioritize robust memory management practices, including meticulous allocation, deallocation and
 error handling, to guarantee stable and leak-free operation.
 
-Cellular Modem is not available on the HUB6 or XER10 reference platforms, so the runtime behaviour in
-this document is taken from the interface definition rather than observed on reference hardware.
+Cellular Modem is not available on the HUB6 or XER10 reference platforms, so the runtime behaviour
+this document describes has not been observed on reference hardware.
 
 Any change to a file listed under "Source References" obliges a review of this document by the
 repository's code owner, `@rdkcentral/rdkb-hal-advisory`.
