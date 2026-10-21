@@ -11,9 +11,7 @@
 
 - `HAL` \- Hardware Abstraction Layer
 - `OEM` \- Original Equipment Manufacturer
-- `RDK` \- Reference Design Kit
 - `RDK-B` \- Reference Design Kit for Broadband Devices
-- `SLA` \- Service Level Agreement
 
 ## Description
 
@@ -34,10 +32,10 @@ interface definition only: `cellular_modem_hal_api.h` declares three functions, 
 
 The interface covers modem management and exactly three capabilities:
 
-- **Factory reset** — return the modem to its default factory settings, discarding custom
+- **Factory reset:** return the modem to its default factory settings, discarding custom
   configuration.
-- **Reboot** — shut the modem down and restart it cleanly.
-- **Firmware version retrieval** — read the modem's current firmware version into a buffer the
+- **Reboot:** shut the modem down and restart it cleanly.
+- **Firmware version retrieval:** read the modem's current firmware version into a buffer the
   caller supplies.
 
 This HAL sits one layer below cellular network access: attaching to the operator network,
@@ -70,11 +68,11 @@ functions directly, without opening or closing a session:
 The Cellular Modem HAL has no explicit dependencies on other APIs for its core functionality.
 Third-party vendors must implement this HAL to meet operational requirements, and a caller depends
 on that implementation being present behind the header at link time. A call made while the modem
-hardware is not ready blocks rather than failing; see "Blocking calls".
+hardware is not ready blocks rather than failing; see `Blocking calls`.
 
 ### Threading Model
 
-**This interface is not thread-safe.** Any module or component invoking its APIs must ensure thread
+**This interface is not thread-safe:** Any module or component invoking its APIs must ensure thread
 safety through external synchronization, serializing every call into the interface rather than only
 concurrent calls to the same function.
 
@@ -129,16 +127,13 @@ changes through it.
 
 ### Blocking calls
 
-- **Synchronous and Responsive:** the Cellular Modem HAL APIs operate synchronously. Each call waits
-  for completion before returning, and its result is the return value. Response times are expected
-  to align with the complexity of the requested operation.
-- **Blocking on hardware readiness:** the interface is designed to block execution while the
-  underlying cellular modem hardware is not ready for operation, which ensures resource availability
-  before a modem operation proceeds. Any of the three calls may therefore block. A caller must not
-  issue one from a thread that cannot tolerate being suspended, and must not treat a slow return as a
-  failure. This differs from `RDK-B` HALs whose specifications require non-blocking calls.
-- **Timeout Handling:** for API calls susceptible to external delay or unresponsiveness,
-  implementations must apply appropriate timeout mechanisms rather than waiting indefinitely.
+- **Synchronous and Responsive:** the Cellular Modem HAL APIs operate synchronously, and each call
+  returns its result as the return value.
+- **Blocking on hardware readiness:** any of the three calls may block until the modem hardware is
+  ready, so a caller must not issue one from a thread that cannot be suspended and must not treat a
+  slow return as a failure.
+- **Timeout Handling:** implementations must apply timeouts to calls susceptible to external delay
+  rather than waiting indefinitely.
 
 ### Internal Error Handling
 
@@ -154,7 +149,7 @@ through that return value.
 The failure conditions each function's documentation lists, such as a hardware fault or an invalid
 parameter, are descriptive rather than distinct codes: every failure returns `STATUS_FAILED`, so a
 caller's failure handling is uniform across the interface. Diagnosing a cause means reading the
-vendor log described under "Logging and debugging requirements".
+vendor log described under `Logging and debugging requirements`.
 
 ### Persistence Model
 
@@ -172,11 +167,9 @@ implementation of it.
 The component must record all errors and critical informative messages using syslog; `printf` is
 discouraged unless syslog is not available.
 
-- **Log file:** `cellular_modem_vendor_hal.log`, in either `/var/tmp/` or `/rdklogs/logs/`.
-- **Log levels:** as defined by the Linux standard logging system, in descending order of severity:
-  `FATAL`, `ERROR`, `WARNING`, `NOTICE`, `INFO`, `DEBUG`, `TRACE`.
-- **Entry format:** each entry carries a timestamp, the log level and a message describing the event
-  or condition.
+Logs are written to `cellular_modem_vendor_hal.log`, in either `/var/tmp/` or `/rdklogs/logs/`.
+
+Log levels follow the Linux standard logging system, in descending order of severity: `FATAL`, `ERROR`, `WARNING`, `NOTICE`, `INFO`, `DEBUG` and `TRACE`. Each log entry carries a timestamp, the log level and a message describing the event or condition.
 
 Implementations must not log credentials, secrets, security-sensitive information, or other sensitive data.
 
@@ -188,24 +181,15 @@ functions.
 
 ### Quality Control
 
-To ensure the highest quality and reliability, it is strongly recommended that third-party quality
-assurance tools such as `Coverity`, `Black Duck` and `Valgrind` be employed to analyze the
-implementation and resolve potential issues — memory leaks, memory corruption or other defects —
-before deployment. Both the HAL wrapper and any third-party software interacting with it must
-prioritize robust memory management practices, including meticulous allocation, deallocation and
-error handling, to guarantee stable and leak-free operation.
+An implementation should pass analysis with third-party tools such as `Coverity`, `Black Duck` and `Valgrind` without reported issues. Neither the HAL implementation nor the vendor software beneath it may introduce memory leaks or memory corruption.
 
-Cellular Modem is not available on the HUB6 or XER10 reference platforms, so the runtime behaviour
-this document describes has not been observed on reference hardware.
+This HAL is not available on the HUB6 or XER10 reference platforms, so the runtime behaviour this document describes has not been observed on reference hardware.
 
-Any change to a file listed under "Source References" obliges a review of this document by the
-repository's code owner, `@rdkcentral/rdkb-hal-advisory`.
+Any change to a file listed under `Source References` obliges a review of this document by the repository's code owner, `@rdkcentral/rdkb-hal-advisory`.
 
 ### Licensing
 
-The implementation is expected to be released under the
-[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), the licence this repository
-carries in its `LICENSE` and `NOTICE` files.
+The interface definition is licensed under the Apache License 2.0, with the full text in `LICENSE` and the attribution notice in `NOTICE`. An implementation of this interface is expected to be released under the Apache License 2.0.
 
 ### Build Requirements
 
@@ -214,12 +198,7 @@ library named `libhal_cellular_modem_hal_api.so`.
 
 ### Variability Management
 
-The role of adjusting the interface, guided by versioning, rests solely within architecture
-requirements. Vendors are thereafter obliged to align their implementation with a designated version
-of the interface; under `SLA` terms they may transition to newer versions as demand requires.
-
-Each API interface is versioned using [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html), and vendor
-code complies with a specific version of the interface.
+Changes to the interface are controlled by versioning. Vendors implement a designated version of the interface and move to later versions as their service agreements require. Each interface version follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html), and vendor code complies with a specific version.
 
 No compile-time flag varies the surface of this interface: every build exposes the same three
 functions and two status macros.
@@ -250,7 +229,7 @@ value.
 #### Object Lifecycles
 
 There are no objects and no handles, so a caller manages no lifetime across calls. The only
-caller-managed resource is the firmware-version buffer described under "Memory Model".
+caller-managed resource is the firmware-version buffer described under `Memory Model`.
 
 No argument identifies a modem: every call applies to the platform's modem, and a platform carrying
 more than one cannot select between them through this interface.
@@ -275,7 +254,7 @@ initial shutdown.
 
 The interface's only public definitions are the two status macros below, its complete return-code
 vocabulary. The only other data crossing the interface is the character buffer
-`Modem_Firmware_Version` fills, described under "Memory Model".
+`Modem_Firmware_Version` fills, described under `Memory Model`.
 
 | Define | What it represents |
 | --- | --- |
@@ -288,7 +267,7 @@ All three declared functions are listed below by exact identifier, grouped by fu
 Per-API detail — argument direction, the documented failure conditions and the return-code list —
 is carried by the Doxygen block on each declaration in `cellular_modem_hal_api.h`.
 
-All three return an `int` status code, one of the two values under "Internal Error Handling".
+All three return an `int` status code, one of the two values under `Internal Error Handling`.
 `Modem_Firmware_Version` returns the firmware version through its out-parameter, not through its
 return value.
 
