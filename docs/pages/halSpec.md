@@ -22,8 +22,8 @@ stack.
 
 ```mermaid
 flowchart TD
-    Caller["RDK-B Middleware"] <--> HAL["Cellular Modem HAL (cellular_modem_hal_api.h)"]
-    HAL <--> Vendor["Vendor Software (libhal_cellular_modem_hal_api.so)"]
+    Caller["RDK-B Middleware"] <--> HAL["Cellular Modem HAL - cellular_modem_hal_api.h"]
+    HAL <--> Vendor["Vendor Software"]
     Vendor <--> Hardware["Cellular modem hardware"]
 ```
 
